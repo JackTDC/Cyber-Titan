@@ -113,9 +113,9 @@ Library/com.unity.addressables/
 
 ### Git LFS note:
 # Make sure to track large binary assets via:
-git lfs track "*.psd"
-git lfs track "*.png"
-git lfs track "*.jpg"
-git lfs track "*.fbx"
-git lfs track "*.wav"
-git lfs track "*.mp4"
+#git lfs track "*.psd"
+#git lfs track "*.png"
+#git lfs track "*.jpg"
+#git lfs track "*.fbx"
+#git lfs track "*.wav"
+#git lfs track "*.mp4"
