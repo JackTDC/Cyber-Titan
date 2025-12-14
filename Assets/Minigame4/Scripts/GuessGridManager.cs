@@ -103,13 +103,15 @@ public class GuessGridManager : MonoBehaviour
 
     void OnEnter()
     {
+        if (!inputField.interactable) return;
+
         string guess = inputField.text.Trim();
-        if (guess == "") return;
+        if (string.IsNullOrEmpty(guess)) return;
 
         CheckGuess(guess);
-        inputField.text = "";
         inputField.ActivateInputField();
     }
+
 
     // ================= GAME LOGIC =================
 
