@@ -83,6 +83,15 @@ public class GameManager : MonoBehaviour
             timerRunning = false;
             StageFailed();
         }
+        if (stageTimer <= 5)
+            {
+                timerText.color = Color.red;
+            }
+            else
+            {
+                timerText.color = Color.yellow;
+            }
+
     }
 
     // ================= PUZZLE =================
