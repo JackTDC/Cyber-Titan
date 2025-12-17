@@ -11,6 +11,16 @@ public class FinalGuessGameManager : MonoBehaviour
     public Button enterButton;
     public TextMeshProUGUI consoleText;
 
+    [Header("Gameplay Parent")]
+    public GameObject gameplayPanel;
+
+    [Header("Access Granted UI")]
+    public GameObject AccessGrantedPanel;
+    public Button continueButton;
+
+    [Header("Timer")]
+    public Timer timer;
+
     int currentLevel = 0;
     int currentRuleIndex = 0;
 
@@ -20,6 +30,12 @@ public class FinalGuessGameManager : MonoBehaviour
     {
         enterButton.onClick.AddListener(OnEnterPressed);
         LoadLevel(0);
+
+        if (AccessGrantedPanel != null)
+            AccessGrantedPanel.SetActive(false);
+
+        if (continueButton != null)
+            continueButton.onClick.AddListener(OnContinuePressed);
     }
 
     void LoadLevel(int levelIndex)
@@ -30,7 +46,15 @@ public class FinalGuessGameManager : MonoBehaviour
         currentRules = BuildRulesForLevel(levelIndex);
 
         passwordInput.text = "";
+        passwordInput.interactable = true;
+        enterButton.interactable = true;
         passwordInput.ActivateInputField();
+
+        if (timer != null)
+            timer.ResetTimer();
+
+        if (gameplayPanel != null)
+            gameplayPanel.SetActive(true);
 
         RenderRules();
     }
@@ -66,20 +90,31 @@ public class FinalGuessGameManager : MonoBehaviour
 
     void LevelComplete()
     {
-        consoleText.text += "\n\nACCESS GRANTED";
+        passwordInput.interactable = false;
+        enterButton.interactable = false;
 
-        Invoke(nameof(NextLevel), 1.2f);
+        if (gameplayPanel != null)
+            gameplayPanel.SetActive(false);
+
+        if (AccessGrantedPanel != null)
+            AccessGrantedPanel.SetActive(true);
     }
 
-    void NextLevel()
+    void OnContinuePressed()
     {
-        if (currentLevel >= 2)
-        {
-            consoleText.text = "ALL LEVELS COMPLETE\nMISSION SUCCESS";
-            return;
-        }
+        if (AccessGrantedPanel != null)
+            AccessGrantedPanel.SetActive(false);
 
         LoadLevel(currentLevel + 1);
+    }
+
+    // 🔁 CALLED BY TIMER WHEN RESUME BUTTON IS CLICKED
+    public void RestartFromLevel1()
+    {
+        if (AccessGrantedPanel != null)
+            AccessGrantedPanel.SetActive(false);
+
+        LoadLevel(0); // Level 1
     }
 
     void ShowWarning(string message)
@@ -103,25 +138,24 @@ public class FinalGuessGameManager : MonoBehaviour
     }
 
     // ---------- RULE DEFINITIONS ----------
-
     List<Rule> BuildRulesForLevel(int level)
     {
         var rules = new List<Rule>();
 
-        if (level == 0) // Tutorial
+        if (level == 0)
         {
             rules.Add(new Rule("At least 12 characters", s => s.Length >= 12));
             rules.Add(new Rule("Contains uppercase letter", HasUppercase));
             rules.Add(new Rule("Contains a number", HasNumber));
         }
-        else if (level == 1) // Logic
+        else if (level == 1)
         {
             rules.Add(new Rule("Exactly 10 characters", s => s.Length == 10));
             rules.Add(new Rule("Exactly one special character", s => CountSpecials(s) == 1));
             rules.Add(new Rule("Starts and ends with a number",
                 s => s.Length >= 2 && char.IsDigit(s[0]) && char.IsDigit(s[s.Length - 1])));
         }
-        else if (level == 2) // Final
+        else if (level == 2)
         {
             rules.Add(new Rule("Exactly 8 characters", s => s.Length == 8));
             rules.Add(new Rule("At least 3 numbers", s => CountNumbers(s) >= 3));
@@ -133,7 +167,6 @@ public class FinalGuessGameManager : MonoBehaviour
     }
 
     // ---------- HELPERS ----------
-
     bool HasUppercase(string s) =>
         System.Text.RegularExpressions.Regex.IsMatch(s, "[A-Z]");
 
@@ -157,6 +190,7 @@ public class FinalGuessGameManager : MonoBehaviour
     }
 }
 
+// ---------- RULE CLASS ----------
 public class Rule
 {
     public string description;
