@@ -33,7 +33,7 @@ public class Timer : MonoBehaviour
 
         timeLeft -= Time.deltaTime;
 
-        // 🔴 Start blinking + red at last 10s
+      
         if (timeLeft <= 10f && !isBlinking)
         {
             StartCoroutine(BlinkRed());
@@ -90,7 +90,7 @@ public class Timer : MonoBehaviour
         isBlinking = false;
     }
 
-    // 🔁 Called when game / level starts or continues
+    
     public void ResetTimer()
     {
         StopAllCoroutines();
@@ -118,7 +118,7 @@ public class Timer : MonoBehaviour
             gameManager.RestartFromLevel1();
     }
 
-    // ❌ Call this from Enter button click
+    
     public void StopTimer()
     {
         isRunning = false;
