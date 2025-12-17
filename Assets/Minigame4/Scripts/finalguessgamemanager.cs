@@ -73,7 +73,7 @@ public class FinalGuessGameManager : MonoBehaviour
 
         if (!rule.validator(input))
         {
-            ShowWarning("Rule failed");
+           ShowWarning(rule.description);
             return;
         }
 
@@ -98,6 +98,10 @@ public class FinalGuessGameManager : MonoBehaviour
 
         if (AccessGrantedPanel != null)
             AccessGrantedPanel.SetActive(true);
+
+        if (timer != null)
+            timer.StopTimer();
+
     }
 
     void OnContinuePressed()
@@ -105,8 +109,15 @@ public class FinalGuessGameManager : MonoBehaviour
         if (AccessGrantedPanel != null)
             AccessGrantedPanel.SetActive(false);
 
+        if (currentLevel + 1 >= 3) // number of levels
+        {
+            Debug.Log("GAME COMPLETE");
+            return;
+        }
+
         LoadLevel(currentLevel + 1);
     }
+
 
     // 🔁 CALLED BY TIMER WHEN RESUME BUTTON IS CLICKED
     public void RestartFromLevel1()

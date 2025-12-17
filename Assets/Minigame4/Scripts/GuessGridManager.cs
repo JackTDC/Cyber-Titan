@@ -16,13 +16,10 @@ public class GuessGridManager : MonoBehaviour
     public TMP_InputField inputField;
     public Button enterButton;
     public TextMeshProUGUI consoleText;
-    public Image[] meterSegments;
-    public Slider intrusionSlider;
 
     LevelType currentLevel = LevelType.Level1;
 
     int revealedRules = 0;
-    int wrongAttempts = 0;
 
     // RULE SETS
     List<System.Func<string, bool>> rules = new();
@@ -42,12 +39,10 @@ public class GuessGridManager : MonoBehaviour
     {
         currentLevel = level;
         revealedRules = 0;
-        wrongAttempts = 0;
 
         rules.Clear();
         messages.Clear();
 
-        intrusionSlider.value = 0;
         inputField.text = "";
         inputField.interactable = true;
         enterButton.interactable = true;
@@ -60,10 +55,10 @@ public class GuessGridManager : MonoBehaviour
             rules.Add(s => s.Length >= 12);
             messages.Add("Use at least 12 characters.");
 
-            rules.Add(s => HasUppercase(s));
+            rules.Add(HasUppercase);
             messages.Add("Add an uppercase letter.");
 
-            rules.Add(s => HasNumber(s));
+            rules.Add(HasNumber);
             messages.Add("Add a number.");
         }
         else if (level == LevelType.Level2)
@@ -76,7 +71,7 @@ public class GuessGridManager : MonoBehaviour
             rules.Add(s => CountSpecials(s) == 1);
             messages.Add("Use exactly ONE special character.");
 
-            rules.Add(s => char.IsDigit(s[0]) && char.IsDigit(s[^1]));
+            rules.Add(s => s.Length >= 2 && char.IsDigit(s[0]) && char.IsDigit(s[^1]));
             messages.Add("Start and end with a number.");
         }
         else
@@ -89,14 +84,12 @@ public class GuessGridManager : MonoBehaviour
             rules.Add(s => CountNumbers(s) >= 3);
             messages.Add("At least 3 numbers required.");
 
-            rules.Add(s => HasUppercase(s));
+            rules.Add(HasUppercase);
             messages.Add("Must contain an uppercase letter.");
 
             rules.Add(s => CountSpecials(s) == 0);
             messages.Add("No special characters allowed.");
         }
-
-        UpdateMeter();
     }
 
     // ================= INPUT =================
@@ -111,7 +104,6 @@ public class GuessGridManager : MonoBehaviour
         CheckGuess(guess);
         inputField.ActivateInputField();
     }
-
 
     // ================= GAME LOGIC =================
 
@@ -132,7 +124,6 @@ public class GuessGridManager : MonoBehaviour
         {
             consoleText.text = messages[revealedRules];
             revealedRules++;
-            UpdateMeter();
             return;
         }
 
@@ -142,8 +133,6 @@ public class GuessGridManager : MonoBehaviour
 
     void RegisterFail()
     {
-        wrongAttempts++;
-        intrusionSlider.value = wrongAttempts;
         consoleText.text = "Incorrect. Try again.";
     }
 
@@ -161,21 +150,21 @@ public class GuessGridManager : MonoBehaviour
         }
     }
 
-    // ================= VISUALS =================
-
-    void UpdateMeter()
-    {
-        for (int i = 0; i < meterSegments.Length; i++)
-            meterSegments[i].color = i < revealedRules ? Color.green : Color.gray;
-    }
-
     // ================= HELPERS =================
 
-    bool HasUppercase(string s) =>
-        System.Text.RegularExpressions.Regex.IsMatch(s, "[A-Z]");
+    bool HasUppercase(string s)
+    {
+        foreach (char c in s)
+            if (char.IsUpper(c)) return true;
+        return false;
+    }
 
-    bool HasNumber(string s) =>
-        System.Text.RegularExpressions.Regex.IsMatch(s, "[0-9]");
+    bool HasNumber(string s)
+    {
+        foreach (char c in s)
+            if (char.IsDigit(c)) return true;
+        return false;
+    }
 
     int CountNumbers(string s)
     {
