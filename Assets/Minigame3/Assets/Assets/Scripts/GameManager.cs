@@ -314,7 +314,6 @@ public class GameManager : MonoBehaviour
     void SetupColorTable()
     {
         colorTableText.text =
-            "Z COLOR TABLE\n" +
             "0-59 WHITE\n60-99 RED\n100-199 YELLOW\n" +
             "200-299 GREEN\n300-399 BLUE\n" +
             "400-499 YELLOW\n500-599 RED\n600+ WHITE";
