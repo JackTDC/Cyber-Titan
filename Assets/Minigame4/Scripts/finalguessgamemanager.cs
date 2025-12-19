@@ -129,9 +129,17 @@ public class FinalGuessGameManager : MonoBehaviour
     }
 
     void ShowWarning(string message)
+{   
+    // If this is the first warning, add spacing
+    if (!consoleText.text.Contains("⚠"))
     {
-        consoleText.text += $"\n⚠ {message}";
+        consoleText.text += "\n\n\n\n"; // space between rules & hints
     }
+
+    consoleText.text += $"<color=#FF5A5A>\n⚠ {message}</color>";
+}
+
+
 
     void RenderRules()
     {
