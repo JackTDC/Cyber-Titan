@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
 
+
 public class FinalGuessGameManager : MonoBehaviour
 {
     [Header("UI (Existing)")]
@@ -18,13 +19,14 @@ public class FinalGuessGameManager : MonoBehaviour
     public GameObject AccessGrantedPanel;
     public Button continueButton;
 
-    [Header("Timer")]
-    public Timer timer;
 
     [HideInInspector]
     public int currentLevel = 0; // Made public to allow LevelManager access
     int currentRuleIndex = 0;
     List<Rule> currentRules;
+    [Header("Timer")]
+    public CountdownTimer countdownTimer;
+
 
     void Start()
     {
@@ -34,8 +36,6 @@ public class FinalGuessGameManager : MonoBehaviour
         if (AccessGrantedPanel != null)
             AccessGrantedPanel.SetActive(false);
 
-        if (timer != null && timer.resumeButton != null)
-            timer.resumeButton.SetActive(false);
 
         LoadLevel(0);
     }
@@ -52,12 +52,9 @@ public class FinalGuessGameManager : MonoBehaviour
         enterButton.interactable = true;
         passwordInput.ActivateInputField();
 
-        if (timer != null)
-        {
-            timer.ResetTimer();
-            if (timer.resumeButton != null)
-                timer.resumeButton.SetActive(false);
-        }
+        if (countdownTimer != null)
+            countdownTimer.StartTimer();
+
 
         if (gameplayPanel != null)
             gameplayPanel.SetActive(true);
@@ -102,11 +99,9 @@ public class FinalGuessGameManager : MonoBehaviour
         passwordInput.interactable = false;
         enterButton.interactable = false;
 
-        if (timer != null)
-            timer.StopTimerOnSuccess();
+        if (countdownTimer != null)
+            countdownTimer.StopTimerOnSuccess();
 
-        if (timer != null && timer.resumeButton != null)
-            timer.resumeButton.SetActive(false);
 
         if (gameplayPanel != null)
             gameplayPanel.SetActive(false);
@@ -117,8 +112,7 @@ public class FinalGuessGameManager : MonoBehaviour
 
     void OnContinuePressed()
     {
-        if (timer != null && timer.resumeButton != null)
-            timer.resumeButton.SetActive(false);
+        
 
         if (currentLevel + 1 >= 3)
         {

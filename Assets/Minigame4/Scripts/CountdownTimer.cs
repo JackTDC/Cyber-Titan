@@ -1,5 +1,7 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
+
 
 public class CountdownTimer : MonoBehaviour
 {
@@ -19,8 +21,16 @@ public class CountdownTimer : MonoBehaviour
     public Color warningColor = Color.red;
     public float blinkSpeed = 0.5f;
 
+    [Header("Clock Visual")]
+    public Image clockFillImage;
+
+    public System.Action OnTimeUp;
+
+
     private float blinkTimer;
     private bool isVisible;
+    private int lastSecond = -1;
+
 
     void Awake()
     {
@@ -50,9 +60,20 @@ public class CountdownTimer : MonoBehaviour
 
     void UpdateTimerUI()
     {
+        int currentSecond = Mathf.CeilToInt(timeLeft);
+
+        // Update text only when the second changes
+        if (currentSecond != lastSecond)
+        {
+            timerText.text = currentSecond.ToString();
+            lastSecond = currentSecond;
+        }
+
+        // Warning state (last 10 seconds)
         if (timeLeft <= 10f)
         {
             blinkTimer += Time.deltaTime;
+
             if (blinkTimer >= blinkSpeed)
             {
                 blinkTimer = 0f;
@@ -60,16 +81,19 @@ public class CountdownTimer : MonoBehaviour
             }
 
             timerText.color = warningColor;
-            timerText.text = isVisible
-                ? "Time Left: " + Mathf.Ceil(timeLeft) + "s"
-                : "";
+            timerText.enabled = isVisible;
         }
         else
         {
             timerText.color = normalColor;
-            timerText.text = "Time Left: " + Mathf.Ceil(timeLeft) + "s";
+            timerText.enabled = true;
         }
+
+        // Radial clock fill
+        if (clockFillImage != null)
+            clockFillImage.fillAmount = timeLeft / startTime;
     }
+
 
     public void StartTimer()
     {
@@ -80,8 +104,9 @@ public class CountdownTimer : MonoBehaviour
 
         if (timerText != null)
         {
-            timerText.color = normalColor;
-            timerText.text = "Time Left: " + Mathf.Ceil(timeLeft) + "s";
+            timerText.text = Mathf.CeilToInt(timeLeft).ToString();
+            lastSecond = Mathf.CeilToInt(timeLeft);
+
         }
 
         if (resumeButton != null) resumeButton.SetActive(false);
@@ -89,6 +114,11 @@ public class CountdownTimer : MonoBehaviour
 
         if (passwordInputPanel != null)
             passwordInputPanel.SetActive(true);
+
+
+        if (clockFillImage != null)
+            clockFillImage.fillAmount = 1f;
+    
     }
 
     void TimeUp()
@@ -96,7 +126,7 @@ public class CountdownTimer : MonoBehaviour
         timerRunning = false;
         timeLeft = 0;
 
-        timerText.text = "TIME'S UP!";
+        timerText.text = "0";
         timerText.color = warningColor;
 
         if (passwordInputPanel != null)
@@ -107,6 +137,10 @@ public class CountdownTimer : MonoBehaviour
 
         if (continueButton != null)
             continueButton.SetActive(false);
+
+        if (clockFillImage != null)
+            clockFillImage.fillAmount = 0f;
+
     }
 
     public void StopTimerOnSuccess()

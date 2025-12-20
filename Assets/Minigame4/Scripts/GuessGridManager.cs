@@ -22,7 +22,8 @@ public class GuessGridManager : MonoBehaviour
     public Button continueButton;
 
     [Header("Timer")]
-    public Timer timer;
+    public CountdownTimer timer;
+
 
     LevelType currentLevel = LevelType.Level1;
     int revealedRules = 0;
@@ -41,9 +42,6 @@ public class GuessGridManager : MonoBehaviour
         if (AccessGrantedPanel != null)
             AccessGrantedPanel.SetActive(false);
 
-        if (timer != null && timer.resumeButton != null)
-            timer.resumeButton.SetActive(false);
-
         LoadLevel(LevelType.Level1);
     }
 
@@ -59,13 +57,6 @@ public class GuessGridManager : MonoBehaviour
         inputField.interactable = true;
         enterButton.interactable = true;
         inputField.ActivateInputField();
-
-        if (timer != null)
-        {
-            timer.ResetTimer();
-            if (timer.resumeButton != null)
-                timer.resumeButton.SetActive(false);
-        }
 
         if (AccessGrantedPanel != null)
             AccessGrantedPanel.SetActive(false);
@@ -113,6 +104,9 @@ public class GuessGridManager : MonoBehaviour
             rules.Add(s => CountSpecials(s) == 0);
             messages.Add("No special characters allowed.");
         }
+        if (timer != null)
+            timer.StartTimer();
+
     }
 
     void OnEnter()
@@ -163,9 +157,7 @@ public class GuessGridManager : MonoBehaviour
         if (timer != null)
             timer.StopTimerOnSuccess();
 
-        if (timer != null && timer.resumeButton != null)
-            timer.resumeButton.SetActive(false);
-
+        
         if (currentLevel == LevelType.Level1)
             LoadLevel(LevelType.Level2);
         else if (currentLevel == LevelType.Level2)
