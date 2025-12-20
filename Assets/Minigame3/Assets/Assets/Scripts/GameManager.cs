@@ -22,6 +22,7 @@ public class GameManager : MonoBehaviour
     public TMP_Text colorTableText;
 
     public TMP_Text timerText;
+    public Image cooldownBarFill;
 
     public Image colorDisplay;
 
@@ -39,6 +40,7 @@ public class GameManager : MonoBehaviour
 
     // ================= TIMER =================
     float stageTimer;
+    float maxStageTime;
     bool timerRunning;
 
     // ================= COLORS =================
@@ -76,22 +78,29 @@ public class GameManager : MonoBehaviour
         if (!timerRunning) return;
 
         stageTimer -= Time.deltaTime;
+        stageTimer = Mathf.Clamp(stageTimer, 0, maxStageTime);
+
         timerText.text = "TIME: " + Mathf.CeilToInt(stageTimer);
+
+        float normalizedTime = stageTimer / maxStageTime;
+        cooldownBarFill.fillAmount = normalizedTime;
+
+        if (normalizedTime <= 0.3f)
+        {
+            timerText.color = Color.red;
+            cooldownBarFill.color = Color.red;
+        }
+        else
+        {
+            timerText.color = Color.cyan;
+            cooldownBarFill.color = Color.cyan;
+        }
 
         if (stageTimer <= 0)
         {
             timerRunning = false;
             StageFailed();
         }
-        if (stageTimer <= 5)
-            {
-                timerText.color = Color.red;
-            }
-            else
-            {
-                timerText.color = Color.yellow;
-            }
-
     }
 
     // ================= PUZZLE =================
@@ -176,7 +185,6 @@ public class GameManager : MonoBehaviour
         {
             inputStageUI.SetActive(true);
             colorStageUI.SetActive(false);
-
             StartTimer(GetInputTime());
         }
         else
@@ -194,9 +202,13 @@ public class GameManager : MonoBehaviour
     // ================= TIMER CONTROL =================
     void StartTimer(float time)
     {
+        maxStageTime = time;
         stageTimer = time;
         timerRunning = true;
+
         timerText.gameObject.SetActive(true);
+        cooldownBarFill.gameObject.SetActive(true);
+        cooldownBarFill.fillAmount = 1f;
     }
 
     void StopTimer()
@@ -221,6 +233,7 @@ public class GameManager : MonoBehaviour
     void StageFailed()
     {
         timerText.text = "TIME UP!";
+        cooldownBarFill.fillAmount = 0f;
         feedbackText.text = "Time expired!";
         colorStageFeedbackText.text = "Time expired!";
         Invoke(nameof(GeneratePuzzle), 2f);
@@ -263,12 +276,12 @@ public class GameManager : MonoBehaviour
 
         if (colors[colorIndex] == targetColor)
         {
-            colorStageFeedbackText.text = " SUCCESS!";
+            colorStageFeedbackText.text = "SUCCESS!";
             AdvanceDifficulty();
         }
         else
         {
-            colorStageFeedbackText.text = " FAILED!";
+            colorStageFeedbackText.text = "FAILED!";
             Invoke(nameof(GeneratePuzzle), 2f);
         }
     }
@@ -281,7 +294,10 @@ public class GameManager : MonoBehaviour
         else if (currentDifficulty == Difficulty.Medium)
             currentDifficulty = Difficulty.Hard;
         else
-            colorStageFeedbackText.text = " ALL LEVELS CLEARED!";
+        {
+            colorStageFeedbackText.text = "ALL LEVELS CLEARED!";
+            return;
+        }
 
         Invoke(nameof(GeneratePuzzle), 2f);
     }
