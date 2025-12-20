@@ -4,6 +4,7 @@ using System.Collections;
 
 public class Timer : MonoBehaviour
 {
+    [Header("Timer Settings")]
     public float startTime = 30f;
     private float timeLeft;
 
@@ -16,32 +17,23 @@ public class Timer : MonoBehaviour
     [Header("Game Manager")]
     public FinalGuessGameManager gameManager;
 
-    private bool isRunning = true;
+    private bool isRunning = false;
     private bool isBlinking = false;
-
-    void Start()
-    {
-        ResetTimer();
-
-        if (resumeButton != null)
-            resumeButton.SetActive(false);
-    }
+    private int timerSession = 0; 
 
     void Update()
     {
-        if (!isRunning || timeLeft <= 0) return;
+        if (!isRunning) return;
 
         timeLeft -= Time.deltaTime;
 
-      
-        if (timeLeft <= 10f && !isBlinking)
-        {
-            StartCoroutine(BlinkRed());
-        }
+        if (timeLeft <= 10f && timeLeft > 0 && !isBlinking)
+            StartCoroutine(BlinkRed(timerSession));
 
         if (timeLeft <= 0)
         {
             TimeUp();
+            return;
         }
 
         UpdateUI();
@@ -49,35 +41,35 @@ public class Timer : MonoBehaviour
 
     void UpdateUI()
     {
-        if (timeLeft > 0)
+        if (timerText != null)
             timerText.text = "Time left: " + Mathf.Ceil(timeLeft);
-        else
-            timerText.text = "TIME'S UP";
     }
 
     void TimeUp()
     {
         isRunning = false;
         timeLeft = 0;
+        StopAllCoroutines();
 
-        // Hide gameplay
         if (gameplayPanel != null)
             gameplayPanel.SetActive(false);
 
-        // Show only Resume button
         if (resumeButton != null)
             resumeButton.SetActive(true);
 
-        timerText.color = Color.red;
-        UpdateUI();
+        if (timerText != null)
+        {
+            timerText.color = Color.red;
+            timerText.text = "TIME'S UP";
+        }
     }
 
-    IEnumerator BlinkRed()
+    IEnumerator BlinkRed(int sessionId)
     {
         isBlinking = true;
         Color original = timerText.color;
 
-        while (timeLeft > 0 && timeLeft <= 10f)
+        while (isRunning && sessionId == timerSession && timeLeft > 0 && timeLeft <= 10f)
         {
             timerText.color = Color.red;
             yield return new WaitForSeconds(0.4f);
@@ -86,42 +78,55 @@ public class Timer : MonoBehaviour
             yield return new WaitForSeconds(0.4f);
         }
 
-        timerText.color = original;
+        if (timerText != null)
+            timerText.color = original;
+
         isBlinking = false;
     }
 
-    
     public void ResetTimer()
     {
+        timerSession++;
         StopAllCoroutines();
 
         timeLeft = startTime;
         isRunning = true;
         isBlinking = false;
 
-        timerText.color = Color.white;
+        if (timerText != null)
+        {
+            timerText.color = Color.white;
+            UpdateUI();
+        }
 
         if (resumeButton != null)
             resumeButton.SetActive(false);
 
         if (gameplayPanel != null)
             gameplayPanel.SetActive(true);
-
-        UpdateUI();
     }
 
-    // ▶ Resume button calls this
+    // 🔹 Updated ResumeGame to restart current level
     public void ResumeGame()
     {
-        ResetTimer(); // restart timer
+        ResetTimer();
+
         if (gameManager != null)
-            gameManager.RestartFromLevel1();
+            gameManager.RestartFromLevel(gameManager.currentLevel);
     }
 
-    
-    public void StopTimer()
+    public void StopTimerOnSuccess()
     {
+        timerSession++; 
         isRunning = false;
         StopAllCoroutines();
+
+        timeLeft = startTime;
+
+        if (resumeButton != null)
+            resumeButton.SetActive(false);
+
+        if (timerText != null)
+            timerText.text = "";
     }
 }

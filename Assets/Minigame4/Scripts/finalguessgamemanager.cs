@@ -21,21 +21,23 @@ public class FinalGuessGameManager : MonoBehaviour
     [Header("Timer")]
     public Timer timer;
 
-    int currentLevel = 0;
+    [HideInInspector]
+    public int currentLevel = 0; // Made public to allow LevelManager access
     int currentRuleIndex = 0;
-
     List<Rule> currentRules;
 
     void Start()
     {
         enterButton.onClick.AddListener(OnEnterPressed);
-        LoadLevel(0);
+        continueButton.onClick.AddListener(OnContinuePressed);
 
         if (AccessGrantedPanel != null)
             AccessGrantedPanel.SetActive(false);
 
-        if (continueButton != null)
-            continueButton.onClick.AddListener(OnContinuePressed);
+        if (timer != null && timer.resumeButton != null)
+            timer.resumeButton.SetActive(false);
+
+        LoadLevel(0);
     }
 
     void LoadLevel(int levelIndex)
@@ -51,17 +53,24 @@ public class FinalGuessGameManager : MonoBehaviour
         passwordInput.ActivateInputField();
 
         if (timer != null)
+        {
             timer.ResetTimer();
+            if (timer.resumeButton != null)
+                timer.resumeButton.SetActive(false);
+        }
 
         if (gameplayPanel != null)
             gameplayPanel.SetActive(true);
+
+        if (AccessGrantedPanel != null)
+            AccessGrantedPanel.SetActive(false);
 
         RenderRules();
     }
 
     void OnEnterPressed()
     {
-        string input = passwordInput.text;
+        string input = passwordInput.text.Trim();
 
         if (string.IsNullOrEmpty(input))
         {
@@ -73,7 +82,7 @@ public class FinalGuessGameManager : MonoBehaviour
 
         if (!rule.validator(input))
         {
-           ShowWarning(rule.description);
+            ShowWarning(rule.description);
             return;
         }
 
@@ -93,23 +102,25 @@ public class FinalGuessGameManager : MonoBehaviour
         passwordInput.interactable = false;
         enterButton.interactable = false;
 
+        if (timer != null)
+            timer.StopTimerOnSuccess();
+
+        if (timer != null && timer.resumeButton != null)
+            timer.resumeButton.SetActive(false);
+
         if (gameplayPanel != null)
             gameplayPanel.SetActive(false);
 
         if (AccessGrantedPanel != null)
             AccessGrantedPanel.SetActive(true);
-
-        if (timer != null)
-            timer.StopTimer();
-
     }
 
     void OnContinuePressed()
     {
-        if (AccessGrantedPanel != null)
-            AccessGrantedPanel.SetActive(false);
+        if (timer != null && timer.resumeButton != null)
+            timer.resumeButton.SetActive(false);
 
-        if (currentLevel + 1 >= 3) // number of levels
+        if (currentLevel + 1 >= 3)
         {
             Debug.Log("GAME COMPLETE");
             return;
@@ -118,28 +129,31 @@ public class FinalGuessGameManager : MonoBehaviour
         LoadLevel(currentLevel + 1);
     }
 
-
-    // 🔁 CALLED BY TIMER WHEN RESUME BUTTON IS CLICKED
-    public void RestartFromLevel1()
+    // 🔹 Resume from timeout: now loads the current level
+    public void ResumeFromTimeUp()
     {
         if (AccessGrantedPanel != null)
             AccessGrantedPanel.SetActive(false);
 
-        LoadLevel(0); // Level 1
+        RestartFromLevel(currentLevel); // Resume same level
+    }
+
+    // 🔹 Restart from a specific level (used by LevelManager Resume)
+    public void RestartFromLevel(int levelIndex = 0)
+    {
+        if (AccessGrantedPanel != null)
+            AccessGrantedPanel.SetActive(false);
+
+        LoadLevel(levelIndex);
     }
 
     void ShowWarning(string message)
-{   
-    // If this is the first warning, add spacing
-    if (!consoleText.text.Contains("⚠"))
     {
-        consoleText.text += "\n\n\n\n"; // space between rules & hints
+        if (!consoleText.text.Contains("⚠"))
+            consoleText.text += "\n\n\n\n";
+
+        consoleText.text += $"<color=#FF5A5A>\n⚠ {message}</color>";
     }
-
-    consoleText.text += $"<color=#FF5A5A>\n⚠ {message}</color>";
-}
-
-
 
     void RenderRules()
     {
@@ -156,7 +170,6 @@ public class FinalGuessGameManager : MonoBehaviour
         }
     }
 
-    // ---------- RULE DEFINITIONS ----------
     List<Rule> BuildRulesForLevel(int level)
     {
         var rules = new List<Rule>();
@@ -172,7 +185,7 @@ public class FinalGuessGameManager : MonoBehaviour
             rules.Add(new Rule("Exactly 10 characters", s => s.Length == 10));
             rules.Add(new Rule("Exactly one special character", s => CountSpecials(s) == 1));
             rules.Add(new Rule("Starts and ends with a number",
-                s => s.Length >= 2 && char.IsDigit(s[0]) && char.IsDigit(s[s.Length - 1])));
+                s => char.IsDigit(s[0]) && char.IsDigit(s[^1])));
         }
         else if (level == 2)
         {
@@ -185,7 +198,6 @@ public class FinalGuessGameManager : MonoBehaviour
         return rules;
     }
 
-    // ---------- HELPERS ----------
     bool HasUppercase(string s) =>
         System.Text.RegularExpressions.Regex.IsMatch(s, "[A-Z]");
 
@@ -209,7 +221,6 @@ public class FinalGuessGameManager : MonoBehaviour
     }
 }
 
-// ---------- RULE CLASS ----------
 public class Rule
 {
     public string description;

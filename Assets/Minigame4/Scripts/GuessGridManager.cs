@@ -17,11 +17,16 @@ public class GuessGridManager : MonoBehaviour
     public Button enterButton;
     public TextMeshProUGUI consoleText;
 
-    LevelType currentLevel = LevelType.Level1;
+    [Header("Access Granted UI")]
+    public GameObject AccessGrantedPanel;
+    public Button continueButton;
 
+    [Header("Timer")]
+    public Timer timer;
+
+    LevelType currentLevel = LevelType.Level1;
     int revealedRules = 0;
 
-    // RULE SETS
     List<System.Func<string, bool>> rules = new();
     List<string> messages = new();
 
@@ -30,10 +35,17 @@ public class GuessGridManager : MonoBehaviour
         enterButton.onClick.RemoveAllListeners();
         enterButton.onClick.AddListener(OnEnter);
 
+        if (continueButton != null)
+            continueButton.onClick.AddListener(OnContinue);
+
+        if (AccessGrantedPanel != null)
+            AccessGrantedPanel.SetActive(false);
+
+        if (timer != null && timer.resumeButton != null)
+            timer.resumeButton.SetActive(false);
+
         LoadLevel(LevelType.Level1);
     }
-
-    // ================= LEVEL SETUP =================
 
     void LoadLevel(LevelType level)
     {
@@ -48,6 +60,17 @@ public class GuessGridManager : MonoBehaviour
         enterButton.interactable = true;
         inputField.ActivateInputField();
 
+        if (timer != null)
+        {
+            timer.ResetTimer();
+            if (timer.resumeButton != null)
+                timer.resumeButton.SetActive(false);
+        }
+
+        if (AccessGrantedPanel != null)
+            AccessGrantedPanel.SetActive(false);
+
+        // Setup rules per level
         if (level == LevelType.Level1)
         {
             consoleText.text = "LEVEL 1\nTutorial System Online";
@@ -92,8 +115,6 @@ public class GuessGridManager : MonoBehaviour
         }
     }
 
-    // ================= INPUT =================
-
     void OnEnter()
     {
         if (!inputField.interactable) return;
@@ -104,8 +125,6 @@ public class GuessGridManager : MonoBehaviour
         CheckGuess(guess);
         inputField.ActivateInputField();
     }
-
-    // ================= GAME LOGIC =================
 
     void CheckGuess(string guess)
     {
@@ -138,6 +157,15 @@ public class GuessGridManager : MonoBehaviour
 
     void CompleteLevel()
     {
+        inputField.interactable = false;
+        enterButton.interactable = false;
+
+        if (timer != null)
+            timer.StopTimerOnSuccess();
+
+        if (timer != null && timer.resumeButton != null)
+            timer.resumeButton.SetActive(false);
+
         if (currentLevel == LevelType.Level1)
             LoadLevel(LevelType.Level2);
         else if (currentLevel == LevelType.Level2)
@@ -145,13 +173,21 @@ public class GuessGridManager : MonoBehaviour
         else
         {
             consoleText.text = "ALL LEVELS COMPLETE\nACCESS GRANTED";
-            inputField.interactable = false;
-            enterButton.interactable = false;
+
+            if (AccessGrantedPanel != null)
+                AccessGrantedPanel.SetActive(true);
         }
     }
 
-    // ================= HELPERS =================
+    void OnContinue()
+    {
+        if (AccessGrantedPanel != null)
+            AccessGrantedPanel.SetActive(false);
 
+        LoadLevel(LevelType.Level1);
+    }
+
+    // ================= HELPERS =================
     bool HasUppercase(string s)
     {
         foreach (char c in s)
