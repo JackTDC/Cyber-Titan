@@ -2,7 +2,6 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 
-
 public class CountdownTimer : MonoBehaviour
 {
     [Header("Timer Settings")]
@@ -16,6 +15,9 @@ public class CountdownTimer : MonoBehaviour
     public GameObject resumeButton;
     public GameObject continueButton;
 
+    [Header("Game Manager")]
+    public FinalGuessGameManager gameManager; // 🔑 ADD THIS
+
     [Header("Timer Visuals")]
     public Color normalColor = Color.white;
     public Color warningColor = Color.red;
@@ -24,13 +26,9 @@ public class CountdownTimer : MonoBehaviour
     [Header("Clock Visual")]
     public Image clockFillImage;
 
-    public System.Action OnTimeUp;
-
-
     private float blinkTimer;
     private bool isVisible;
     private int lastSecond = -1;
-
 
     void Awake()
     {
@@ -49,31 +47,24 @@ public class CountdownTimer : MonoBehaviour
         timeLeft -= Time.deltaTime;
 
         if (timeLeft > 0)
-        {
             UpdateTimerUI();
-        }
         else
-        {
             TimeUp();
-        }
     }
 
     void UpdateTimerUI()
     {
         int currentSecond = Mathf.CeilToInt(timeLeft);
 
-        // Update text only when the second changes
         if (currentSecond != lastSecond)
         {
             timerText.text = currentSecond.ToString();
             lastSecond = currentSecond;
         }
 
-        // Warning state (last 10 seconds)
         if (timeLeft <= 10f)
         {
             blinkTimer += Time.deltaTime;
-
             if (blinkTimer >= blinkSpeed)
             {
                 blinkTimer = 0f;
@@ -89,11 +80,9 @@ public class CountdownTimer : MonoBehaviour
             timerText.enabled = true;
         }
 
-        // Radial clock fill
         if (clockFillImage != null)
             clockFillImage.fillAmount = timeLeft / startTime;
     }
-
 
     public void StartTimer()
     {
@@ -102,12 +91,8 @@ public class CountdownTimer : MonoBehaviour
         blinkTimer = 0f;
         isVisible = true;
 
-        if (timerText != null)
-        {
-            timerText.text = Mathf.CeilToInt(timeLeft).ToString();
-            lastSecond = Mathf.CeilToInt(timeLeft);
-
-        }
+        timerText.text = Mathf.CeilToInt(timeLeft).ToString();
+        lastSecond = Mathf.CeilToInt(timeLeft);
 
         if (resumeButton != null) resumeButton.SetActive(false);
         if (continueButton != null) continueButton.SetActive(false);
@@ -115,10 +100,8 @@ public class CountdownTimer : MonoBehaviour
         if (passwordInputPanel != null)
             passwordInputPanel.SetActive(true);
 
-
         if (clockFillImage != null)
             clockFillImage.fillAmount = 1f;
-    
     }
 
     void TimeUp()
@@ -141,14 +124,16 @@ public class CountdownTimer : MonoBehaviour
         if (clockFillImage != null)
             clockFillImage.fillAmount = 0f;
 
+        // 🔥 NOTIFY GAME MANAGER
+        if (gameManager != null)
+            gameManager.ResumeFromTimeUp();
     }
 
     public void StopTimerOnSuccess()
     {
         timerRunning = false;
 
-        if (timerText != null)
-            timerText.text = "";
+        timerText.text = "";
 
         if (resumeButton != null)
             resumeButton.SetActive(false);

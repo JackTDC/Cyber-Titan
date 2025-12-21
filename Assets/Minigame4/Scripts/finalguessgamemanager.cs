@@ -4,7 +4,6 @@ using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
 
-
 public class FinalGuessGameManager : MonoBehaviour
 {
     [Header("UI (Existing)")]
@@ -19,23 +18,25 @@ public class FinalGuessGameManager : MonoBehaviour
     public GameObject AccessGrantedPanel;
     public Button continueButton;
 
-
-    [HideInInspector]
-    public int currentLevel = 0; // Made public to allow LevelManager access
-    int currentRuleIndex = 0;
-    List<Rule> currentRules;
     [Header("Timer")]
     public CountdownTimer countdownTimer;
 
+    [HideInInspector]
+    public int currentLevel = 0;
+
+    int currentRuleIndex = 0;
+    List<Rule> currentRules;
 
     void Start()
     {
-        enterButton.onClick.AddListener(OnEnterPressed);
-        continueButton.onClick.AddListener(OnContinuePressed);
+        if (enterButton != null)
+            enterButton.onClick.AddListener(OnEnterPressed);
+
+        if (continueButton != null)
+            continueButton.onClick.AddListener(OnContinuePressed);
 
         if (AccessGrantedPanel != null)
             AccessGrantedPanel.SetActive(false);
-
 
         LoadLevel(0);
     }
@@ -54,7 +55,6 @@ public class FinalGuessGameManager : MonoBehaviour
 
         if (countdownTimer != null)
             countdownTimer.StartTimer();
-
 
         if (gameplayPanel != null)
             gameplayPanel.SetActive(true);
@@ -102,7 +102,6 @@ public class FinalGuessGameManager : MonoBehaviour
         if (countdownTimer != null)
             countdownTimer.StopTimerOnSuccess();
 
-
         if (gameplayPanel != null)
             gameplayPanel.SetActive(false);
 
@@ -112,8 +111,6 @@ public class FinalGuessGameManager : MonoBehaviour
 
     void OnContinuePressed()
     {
-        
-
         if (currentLevel + 1 >= 3)
         {
             Debug.Log("GAME COMPLETE");
@@ -123,17 +120,20 @@ public class FinalGuessGameManager : MonoBehaviour
         LoadLevel(currentLevel + 1);
     }
 
-    // 🔹 Resume from timeout: now loads the current level
+    // ✅ CALLED BY CountdownTimer WHEN TIME IS UP
     public void ResumeFromTimeUp()
     {
-        if (AccessGrantedPanel != null)
-            AccessGrantedPanel.SetActive(false);
+        passwordInput.interactable = false;
+        enterButton.interactable = false;
 
-        RestartFromLevel(currentLevel); // Resume same level
+        if (gameplayPanel != null)
+            gameplayPanel.SetActive(false);
+
+        if (AccessGrantedPanel != null)
+            AccessGrantedPanel.SetActive(true);
     }
 
-    // 🔹 Restart from a specific level (used by LevelManager Resume)
-    public void RestartFromLevel(int levelIndex = 0)
+    public void RestartFromLevel(int levelIndex)
     {
         if (AccessGrantedPanel != null)
             AccessGrantedPanel.SetActive(false);
@@ -144,7 +144,7 @@ public class FinalGuessGameManager : MonoBehaviour
     void ShowWarning(string message)
     {
         if (!consoleText.text.Contains("⚠"))
-            consoleText.text += "\n\n\n\n";
+            consoleText.text += "\n\n";
 
         consoleText.text += $"<color=#FF5A5A>\n⚠ {message}</color>";
     }

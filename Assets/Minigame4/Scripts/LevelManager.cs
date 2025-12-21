@@ -7,24 +7,38 @@ public class LevelManager : MonoBehaviour
     public GameObject accessGrantedPanel;
 
     [Header("Timer")]
-    public CountdownTimer countdownTimer; // ✅ NEW TIMER ONLY
+    public CountdownTimer countdownTimer;
 
     [Header("Level Tracking")]
     public int currentLevelIndex = 0;
 
-    // Called when password/minigame is correct
+    void Start()
+    {
+        // Ensure panel is hidden at start
+        if (accessGrantedPanel != null)
+            accessGrantedPanel.SetActive(false);
+    }
+
+    // ✅ Called when password/minigame is correct
     public void ShowAccessGranted(int levelIndex)
     {
         currentLevelIndex = levelIndex;
 
-        if (accessGrantedPanel != null)
-            accessGrantedPanel.SetActive(true);
-
         if (countdownTimer != null)
             countdownTimer.StopTimerOnSuccess();
+
+        if (accessGrantedPanel != null)
+        {
+            accessGrantedPanel.SetActive(true);
+            Debug.Log("Access Granted Panel SHOWN");
+        }
+        else
+        {
+            Debug.LogError("AccessGrantedPanel is NOT assigned in LevelManager");
+        }
     }
 
-    // Continue to next scene
+    // ✅ Continue button
     public void ContinueGame()
     {
         int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
