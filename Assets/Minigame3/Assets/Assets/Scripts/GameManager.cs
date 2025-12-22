@@ -29,6 +29,15 @@ public class GameManager : MonoBehaviour
     public GameObject inputStageUI;
     public GameObject colorStageUI;
 
+    [Header("Timer Settings")]
+    public float easyInputTime = 30f;
+    public float mediumInputTime = 25f;
+    public float hardInputTime = 20f;
+
+    public float easyColorTime = 20f;
+    public float mediumColorTime = 15f;
+    public float hardColorTime = 10f;
+
     // ================= GAME STATE =================
     public Difficulty currentDifficulty = Difficulty.Easy;
     GameStage currentStage;
@@ -50,7 +59,9 @@ public class GameManager : MonoBehaviour
         Color.red,
         Color.yellow,
         Color.green,
-        Color.blue
+        Color.blue,
+        Color.cyan,
+        new Color(1f, 0f, 1f) // Magenta
     };
 
     int colorIndex = 0;
@@ -218,16 +229,16 @@ public class GameManager : MonoBehaviour
 
     float GetInputTime()
     {
-        if (currentDifficulty == Difficulty.Easy) return 30f;
-        if (currentDifficulty == Difficulty.Medium) return 25f;
-        return 20f;
+        if (currentDifficulty == Difficulty.Easy) return easyInputTime;
+        if (currentDifficulty == Difficulty.Medium) return mediumInputTime;
+        return hardInputTime;
     }
 
     float GetColorTime()
     {
-        if (currentDifficulty == Difficulty.Easy) return 20f;
-        if (currentDifficulty == Difficulty.Medium) return 15f;
-        return 10f;
+        if (currentDifficulty == Difficulty.Easy) return easyColorTime;
+        if (currentDifficulty == Difficulty.Medium) return mediumColorTime;
+        return hardColorTime;
     }
 
     void StageFailed()
@@ -312,6 +323,11 @@ public class GameManager : MonoBehaviour
         if (z <= 399) return Color.blue;
         if (z <= 499) return Color.yellow;
         if (z <= 599) return Color.red;
+        if (z <= 999) return Color.cyan;
+        if (z <= 1999) return new Color(1f, 0f, 1f);
+        if (z <= 3999) return Color.green;
+        if (z <= 6480) return Color.red;
+
         return Color.white;
     }
 
@@ -330,8 +346,16 @@ public class GameManager : MonoBehaviour
     void SetupColorTable()
     {
         colorTableText.text =
-            "0-59 WHITE\n60-99 RED\n100-199 YELLOW\n" +
-            "200-299 GREEN\n300-399 BLUE\n" +
-            "400-499 YELLOW\n500-599 RED\n600+ WHITE";
+            "0-59 WHITE\n" +
+            "60-99 RED\n" +
+            "100-199 YELLOW\n" +
+            "200-299 GREEN\n" +
+            "300-399 BLUE\n" +
+            "400-499 YELLOW\n" +
+            "500-599 RED\n" +
+            "600-999 CYAN\n" +
+            "1000-1999 MAGENTA\n" +
+            "2000-3999 GREEN\n" +
+            "4000-6480 RED";
     }
 }
